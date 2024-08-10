@@ -2,35 +2,38 @@ import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import './App.css';
 
-type Task = {
+type SolderType = {
   id: number;
   text: string;
   checked: boolean;
 };
 
-const tasksData: Task[] = [
+const soldersData: SolderType[] = [
   { id: 1, text: 'Task 1', checked: false },
   { id: 2, text: 'Task 2', checked: false },
   { id: 3, text: 'Task 3', checked: false },
   { id: 4, text: 'Task 4', checked: false },
 ];
 
-const TaskItem: React.FC<{
-  task: Task;
+const Solder: React.FC<{
+  solder: SolderType;
   index: number;
   onCheck: (id: number) => void;
   isSelected: boolean;
   showCheckbox: boolean;
-}> = ({ task, index, onCheck, isSelected, showCheckbox }) => {
-  
+  onRemoveOrMove: (id: number) => void;
+}> = ({ solder: solder, index, onCheck, isSelected, showCheckbox, onRemoveOrMove }) => {
+
   const handleDoubleClick = () => {
-    if (task.checked) {
-      onCheck(task.id); // Toggle the checkbox to false on double-click
+    if (solder.checked) {
+      onCheck(solder.id); // Toggle the checkbox to false on double-click
     }
   };
 
   return (
-    <Draggable draggableId={task.id.toString()} index={index}>
+      <div >
+    <Draggable draggableId={solder.id.toString()} index={index}>
+
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
@@ -40,32 +43,36 @@ const TaskItem: React.FC<{
           style={{
             userSelect: 'none',
             ...provided.draggableProps.style,
+            display: 'flex',
           }}
         >
           {showCheckbox && (
             <input
               type="checkbox"
-              checked={task.checked}
-              onChange={() => onCheck(task.id)}
+              checked={solder.checked}
+              onChange={() => onCheck(solder.id)}
               onDoubleClick={handleDoubleClick}
               className="task-checkbox"
-            />
-          )}
-          {task.text}
-        </div>
+              />
+            )}
+          <span className="task-text">{solder.text}</span>
+          <div className="remove-icon" onClick={() => onRemoveOrMove(solder.id)}>x
+          </div>
+      </div>
       )}
     </Draggable>
+      </div>
   );
 };
 
-
-const TaskBox: React.FC<{
-  title: string;
-  tasks: Task[];
+const SoldersBox: React.FC<{
+  boxTitle: string;
+  solders: SolderType[];
   onCheck: (id: number) => void;
-  selectedTaskIds: number[];
+  selectedSoldersIds: number[];
   showCheckbox: boolean;
-}> = ({ title, tasks, onCheck, selectedTaskIds, showCheckbox }) => {
+  onRemoveOrMove: (id: number) => void;
+}> = ({ boxTitle: title, solders: solders, onCheck, selectedSoldersIds: selectedTaskIds, showCheckbox, onRemoveOrMove }) => {
   return (
     <Droppable droppableId={title}>
       {(provided, snapshot) => (
@@ -76,14 +83,15 @@ const TaskBox: React.FC<{
           style={{ backgroundColor: snapshot.isDraggingOver ? 'lightblue' : 'lightgrey' }}
         >
           <h2>{title}</h2>
-          {tasks.map((task, index) => (
-            <TaskItem
+          {solders.map((task, index) => (
+            <Solder
               key={task.id}
-              task={task}
+              solder={task}
               index={index}
               onCheck={onCheck}
               isSelected={selectedTaskIds.includes(task.id)}
               showCheckbox={showCheckbox}
+              onRemoveOrMove={onRemoveOrMove}
             />
           ))}
           {provided.placeholder}
@@ -93,85 +101,97 @@ const TaskBox: React.FC<{
   );
 };
 
-const App2: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>(tasksData);
-  const [doneTasks, setDoneTasks] = useState<Task[]>([]);
-  const [selectedTaskIds, setSelectedTaskIds] = useState<number[]>([]);
+const App: React.FC = () => {
+  const [solders, setSolders] = useState<SolderType[]>(soldersData);
+  const [choseSolders, setChoseSolders] = useState<SolderType[]>([]);
+  const [selectedSoldersIds, setSelectedSoldersIds] = useState<number[]>([]);
 
-  const handleCheck = (id: number) => {
-    setSelectedTaskIds(prevSelected =>
-      prevSelected.includes(id) ? prevSelected.filter(taskId => taskId !== id) : [...prevSelected, id]
+  const handleCheckSolder = (id: number) => {
+    setSelectedSoldersIds(prevSelected =>
+      prevSelected.includes(id) ? prevSelected.filter(solderId => solderId !== id) : [...prevSelected, id]
     );
+  };
+
+  const handleRemoveOrMove = (id: number) => {
+    if (solders.some(task => task.id === id)) {
+      // If the task is in the To Do box, remove it
+      setSolders(prevSoldrs => prevSoldrs.filter(task => task.id !== id));
+    } else {
+      // If the task is in the Done box, move it back to the To Do box
+      const taskToMove = choseSolders.find(task => task.id === id);
+      if (taskToMove) {
+        setChoseSolders(prevChosenSolders => prevChosenSolders.filter(solder => solder.id !== id));
+        setSolders(prevSoldrs => [...prevSoldrs, { ...taskToMove, checked: false }]);
+      }
+    }
   };
 
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
-  
+
     // Dropped outside the list
     if (!destination) return;
-  
-    const sourceTasks = source.droppableId === 'To Do' ? tasks : doneTasks;
-    const destinationTasks = destination.droppableId === 'To Do' ? tasks : doneTasks;
-    const setSourceTasks = source.droppableId === 'To Do' ? setTasks : setDoneTasks;
-    const setDestinationTasks = destination.droppableId === 'To Do' ? setTasks : setDoneTasks;
-  
-    let movingTasks: Task[] = [];
-  
-    if (selectedTaskIds.length > 0 && source.droppableId === 'To Do') {
+
+    const sourceSolders = source.droppableId === 'Solders' ? solders : choseSolders;
+    const destinationTasks = destination.droppableId === 'Solders' ? solders : choseSolders;
+    const setSourceSolders = source.droppableId === 'Solders' ? setSolders : setChoseSolders;
+    const setDestinationSolders = destination.droppableId === 'Solders' ? setSolders : setChoseSolders;
+
+    let movingSolders: SolderType[] = [];
+
+    if (selectedSoldersIds.length > 0 && source.droppableId === 'Solders') {
       // Dragging multiple selected tasks
-      movingTasks = sourceTasks.filter(task => selectedTaskIds.includes(task.id));
+      movingSolders = sourceSolders.filter(solder => selectedSoldersIds.includes(solder.id));
     } else {
       // Dragging a single task
-      movingTasks = [sourceTasks[source.index]];
+      movingSolders = [sourceSolders[source.index]];
     }
-  
+
     // If reordering within the same list
     if (source.droppableId === destination.droppableId) {
-      const reorderedTasks = Array.from(sourceTasks);
-      const [removed] = reorderedTasks.splice(source.index, 1);
-      reorderedTasks.splice(destination.index, 0, removed);
-  
-      setSourceTasks(reorderedTasks);
+      const reorderedSolders = Array.from(sourceSolders);
+      const [removed] = reorderedSolders.splice(source.index, 1);
+      reorderedSolders.splice(destination.index, 0, removed);
+
+      setSourceSolders(reorderedSolders);
     } else {
       // Moving between lists
-      const remainingTasks = sourceTasks.filter(task => !movingTasks.includes(task));
-      const newDestinationTasks = Array.from(destinationTasks);
-  
+      const remainingSolders = sourceSolders.filter(solder => !movingSolders.includes(solder));
+      const newDestinationSolders = Array.from(destinationTasks);
+
       // Insert the moving tasks into the new list
-      newDestinationTasks.splice(destination.index, 0, ...movingTasks.map(task => ({ ...task, checked: false })));
-  
-      setSourceTasks(remainingTasks);
-      setDestinationTasks(newDestinationTasks);
+      newDestinationSolders.splice(destination.index, 0, ...movingSolders.map(solder => ({ ...solder, checked: false })));
+
+      setSourceSolders(remainingSolders);
+      setDestinationSolders(newDestinationSolders);
     }
-  
+
     // Clear selected tasks after dragging
-    setSelectedTaskIds([]);
+    setSelectedSoldersIds([]);
   };
-  
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="App">
-        <TaskBox
-          title="To Do"
-          tasks={tasks}
-          onCheck={handleCheck}
-          selectedTaskIds={selectedTaskIds}
+        <SoldersBox
+          boxTitle="Solders"
+          solders={solders}
+          onCheck={handleCheckSolder}
+          selectedSoldersIds={selectedSoldersIds}
           showCheckbox={true}
+          onRemoveOrMove={handleRemoveOrMove}
         />
-        <TaskBox
-          title="Done"
-          tasks={doneTasks}
+        <SoldersBox
+          boxTitle="ChosenSolders"
+          solders={choseSolders}
           onCheck={() => {}}
-          selectedTaskIds={[]}
+          selectedSoldersIds={[]}
           showCheckbox={false}
+          onRemoveOrMove={handleRemoveOrMove}
         />
       </div>
     </DragDropContext>
   );
 };
 
-export default App2
-
-
-
+export default App;

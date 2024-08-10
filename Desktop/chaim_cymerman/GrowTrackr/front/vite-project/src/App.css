@@ -1,4 +1,46 @@
-/* App container styling */
+.task-item {
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  background-color: #f4f4f4;
+  border: 1px solid #ccc;
+  position: relative;
+}
+
+.task-item.dragging {
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+  opacity: 0.8;
+}
+
+.task-item.selected {
+  background-color: #e0f0ff;
+  color: #0052cc;
+}
+
+.task-item:focus {
+  outline: none;
+  border-color: #b3d9b3;
+}
+
+.task-checkbox {
+  margin-right: 8px;
+}
+
+.task-text {
+  flex-grow: 1;
+}
+
+.remove-icon {
+  width: 24px;
+  height: 24px;
+  color: red;
+  cursor: pointer;
+  font-size: 16px;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
 .App {
   display: flex;
   justify-content: space-around;
@@ -64,21 +106,35 @@
 /* Checkbox styling */
 .task-checkbox {
   margin-right: 10px;
-  width: 16px;
-  height: 16px;
+  width: 24px; /* Set the base size to the larger size */
+  height: 24px;
   position: relative;
   cursor: pointer;
-  transition: width 0.3s, height 0.3s;
+  appearance: none;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  background-color: transparent;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
-/* Enlarged checkbox with a checkmark when selected */
-.task-checkbox:checked {
-  width: 24px;
-  height: 24px;
+/* Checkbox background and border when checked */
+/* .task-checkbox:checked {
   background-color: #007bff;
-  border-radius: 4px;
-  position: relative;
+  border-color: #007bff;
+} */
+
+/* Add the 'V' icon when the checkbox is checked */
+.task-checkbox:checked::after {
+  content: '✔';
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
+
 
 .task-checkbox:checked::before {
   content: "✔";
@@ -113,4 +169,4 @@ button:hover {
 button:active {
   background-color: #00408d;
   transform: scale(0.95);
-}
+} 
