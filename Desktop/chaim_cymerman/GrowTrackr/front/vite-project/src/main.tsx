@@ -8,13 +8,13 @@ const root = ReactDOM.createRoot(rootElement);
 
 root.render(
   <>
-    <div>
-      <div>
-        <App />
-      </div>
-      <div>
-        <App2 />
-      </div>
+    <div >
+  <div style={{ display: 'flex', border: '2px solid black' }}>
+      <App />
     </div>
-  </>
+    <div >
+      <App2 />
+    </div>
+  </div>
+</>
 );

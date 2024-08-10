@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import './App.css';
+import { DragDropContext, Droppable, Draggable, DropResult, DragStart } from 'react-beautiful-dnd';
+import './App2.css';
 
 type SolderType = {
   id: number;
@@ -22,7 +22,10 @@ const Solder: React.FC<{
   isSelected: boolean;
   showCheckbox: boolean;
   onRemoveOrMove: (id: number) => void;
-}> = ({ solder: solder, index, onCheck, isSelected, showCheckbox, onRemoveOrMove }) => {
+  draggingCount: number;
+
+}> = ({ solder: solder, index, onCheck, isSelected, showCheckbox, onRemoveOrMove ,  draggingCount
+}) => {
 
   const handleDoubleClick = () => {
     if (solder.checked) {
@@ -56,8 +59,14 @@ const Solder: React.FC<{
               />
             )}
           <span className="task-text">{solder.text}</span>
-          <div className="remove-icon" onClick={() => onRemoveOrMove(solder.id)}>x
+          <div className="remove-icon" onClick={() => onRemoveOrMove(solder.id)}>
+          &#10005;
           </div>
+          {snapshot.isDragging && draggingCount > 1 && (
+            <div className="dragging-count-circle">
+              {draggingCount}
+            </div>
+          )}
       </div>
       )}
     </Draggable>
@@ -72,7 +81,9 @@ const SoldersBox: React.FC<{
   selectedSoldersIds: number[];
   showCheckbox: boolean;
   onRemoveOrMove: (id: number) => void;
-}> = ({ boxTitle: title, solders: solders, onCheck, selectedSoldersIds: selectedTaskIds, showCheckbox, onRemoveOrMove }) => {
+  draggingCount: number;
+
+}> = ({ boxTitle: title, solders: solders, onCheck, selectedSoldersIds: selectedTaskIds, showCheckbox, onRemoveOrMove ,draggingCount}) => {
   return (
     <Droppable droppableId={title}>
       {(provided, snapshot) => (
@@ -92,6 +103,8 @@ const SoldersBox: React.FC<{
               isSelected={selectedTaskIds.includes(task.id)}
               showCheckbox={showCheckbox}
               onRemoveOrMove={onRemoveOrMove}
+              draggingCount={draggingCount}
+
             />
           ))}
           {provided.placeholder}
@@ -105,6 +118,7 @@ const App: React.FC = () => {
   const [solders, setSolders] = useState<SolderType[]>(soldersData);
   const [choseSolders, setChoseSolders] = useState<SolderType[]>([]);
   const [selectedSoldersIds, setSelectedSoldersIds] = useState<number[]>([]);
+  const [draggingCount, setDraggingCount] = useState<number>(0);
 
   const handleCheckSolder = (id: number) => {
     setSelectedSoldersIds(prevSelected =>
@@ -126,11 +140,24 @@ const App: React.FC = () => {
     }
   };
 
+  const onDragStart = (start: DragStart) => {
+    const sourceSolders = start.source.droppableId === 'Solders' ? solders : choseSolders;
+    const movingSolders = selectedSoldersIds.length > 0
+      ? sourceSolders.filter(solder => selectedSoldersIds.includes(solder.id))
+      : [sourceSolders[start.source.index]];
+
+    setDraggingCount(movingSolders.length);
+  };
+
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
 
     // Dropped outside the list
-    if (!destination) return;
+    if (!destination) {
+      setDraggingCount(0);
+      return;
+
+    }
 
     const sourceSolders = source.droppableId === 'Solders' ? solders : choseSolders;
     const destinationTasks = destination.droppableId === 'Solders' ? solders : choseSolders;
@@ -168,10 +195,12 @@ const App: React.FC = () => {
 
     // Clear selected tasks after dragging
     setSelectedSoldersIds([]);
+    setDraggingCount(0);
+
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
+    <DragDropContext onDragEnd={onDragEnd} onDragStart={onDragStart}>
       <div className="App">
         <SoldersBox
           boxTitle="Solders"
@@ -180,6 +209,8 @@ const App: React.FC = () => {
           selectedSoldersIds={selectedSoldersIds}
           showCheckbox={true}
           onRemoveOrMove={handleRemoveOrMove}
+          draggingCount={draggingCount}
+
         />
         <SoldersBox
           boxTitle="ChosenSolders"
@@ -188,6 +219,8 @@ const App: React.FC = () => {
           selectedSoldersIds={[]}
           showCheckbox={false}
           onRemoveOrMove={handleRemoveOrMove}
+          draggingCount={draggingCount}
+
         />
       </div>
     </DragDropContext>
