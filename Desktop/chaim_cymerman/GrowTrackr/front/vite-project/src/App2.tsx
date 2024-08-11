@@ -93,7 +93,7 @@ const SoldersBox: React.FC<{
           className="task-box"
           style={{ backgroundColor: snapshot.isDraggingOver ? 'lightblue' : 'lightgrey' }}
         >
-          <h2>{title}</h2>
+          {/* <h2>{title}</h2> */}
           {solders.map((task, index) => (
             <Solder
               key={task.id}

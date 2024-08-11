@@ -8,8 +8,8 @@ const root = ReactDOM.createRoot(rootElement);
 
 root.render(
   <>
+  <div >
     <div >
-  <div style={{ display: 'flex', border: '2px solid black' }}>
       <App />
     </div>
     <div >
