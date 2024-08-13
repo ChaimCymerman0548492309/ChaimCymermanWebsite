@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult, DragStart } from 'react-beautiful-dnd';
-import './App2.css';
+import './App.css';
 
 type SolderType = {
   id: number;
@@ -21,11 +21,11 @@ const Solder: React.FC<{
   onCheck: (id: number) => void;
   isSelected: boolean;
   showCheckbox: boolean;
-  onRemoveOrMove: (id: number) => void;
+  onRemoveOrMove: (id: number, boxIndex: number, title: string) => void;
   draggingCount: number;
+  title: string;
 
-}> = ({ solder: solder, index, onCheck, isSelected, showCheckbox, onRemoveOrMove ,  draggingCount
-}) => {
+}> = ({ solder, index, onCheck, isSelected, showCheckbox, onRemoveOrMove, draggingCount, title }) => {
 
   const handleDoubleClick = () => {
     if (solder.checked) {
@@ -34,9 +34,7 @@ const Solder: React.FC<{
   };
 
   return (
-      <div >
     <Draggable draggableId={solder.id.toString()} index={index}>
-
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
@@ -56,21 +54,21 @@ const Solder: React.FC<{
               onChange={() => onCheck(solder.id)}
               onDoubleClick={handleDoubleClick}
               className="task-checkbox"
-              />
-            )}
+            />
+          )}
           <span className="task-text">{solder.text}</span>
-          <div className="remove-icon" onClick={() => onRemoveOrMove(solder.id)}>
-          &#10005;
+          <div className="remove-icon" onClick={() => onRemoveOrMove(solder.id, index, title)}>
+            &#10005;
           </div>
+
           {snapshot.isDragging && draggingCount > 1 && (
             <div className="dragging-count-circle">
               {draggingCount}
             </div>
           )}
-      </div>
+        </div>
       )}
     </Draggable>
-      </div>
   );
 };
 
@@ -80,10 +78,10 @@ const SoldersBox: React.FC<{
   onCheck: (id: number) => void;
   selectedSoldersIds: number[];
   showCheckbox: boolean;
-  onRemoveOrMove: (id: number) => void;
+  onRemoveOrMove: (id: number, boxIndex: number, title: string) => void;
   draggingCount: number;
 
-}> = ({ boxTitle: title, solders: solders, onCheck, selectedSoldersIds: selectedTaskIds, showCheckbox, onRemoveOrMove ,draggingCount}) => {
+}> = ({ boxTitle: title, solders, onCheck, selectedSoldersIds, showCheckbox, onRemoveOrMove, draggingCount }) => {
   return (
     <Droppable droppableId={title}>
       {(provided, snapshot) => (
@@ -93,18 +91,18 @@ const SoldersBox: React.FC<{
           className="task-box"
           style={{ backgroundColor: snapshot.isDraggingOver ? 'lightblue' : 'lightgrey' }}
         >
-          {/* <h2>{title}</h2> */}
+          <h2>{title}</h2>
           {solders.map((task, index) => (
             <Solder
               key={task.id}
               solder={task}
               index={index}
               onCheck={onCheck}
-              isSelected={selectedTaskIds.includes(task.id)}
+              isSelected={selectedSoldersIds.includes(task.id)}
               showCheckbox={showCheckbox}
-              onRemoveOrMove={onRemoveOrMove}
+              onRemoveOrMove={(id: number) => onRemoveOrMove(id, index, title)}
               draggingCount={draggingCount}
-
+              title={title}
             />
           ))}
           {provided.placeholder}
@@ -116,9 +114,72 @@ const SoldersBox: React.FC<{
 
 const App: React.FC = () => {
   const [solders, setSolders] = useState<SolderType[]>(soldersData);
-  const [choseSolders, setChoseSolders] = useState<SolderType[]>([]);
+  const [doneBoxes, setDoneBoxes] = useState<SolderType[][]>([[]]);
   const [selectedSoldersIds, setSelectedSoldersIds] = useState<number[]>([]);
   const [draggingCount, setDraggingCount] = useState<number>(0);
+
+
+  const updateBoxes = (
+    sourceId: string,
+    destId: string,
+    sourceIndex: number,
+    destIndex: number,
+    selectedSoldersIds: number[], // Changed to number[]
+    solders: SolderType[],
+    doneBoxes: SolderType[][]
+  ): {
+    solders: SolderType[];
+    doneBoxes: SolderType[][];
+  } => {
+    const sourceIdNumber = parseInt(sourceId.split('-')[1], 10);
+    const destIdNumber = parseInt(destId.split('-')[1], 10);
+
+    let updatedSolders = [...solders];
+    const updatedDoneBoxes = [...doneBoxes];
+
+    const sourceSolders = sourceId === 'Solders' ? updatedSolders : updatedDoneBoxes[sourceIdNumber];
+    const destinationSolders = destId === 'Solders' ? updatedSolders : updatedDoneBoxes[destIdNumber];
+
+    const movingSolders = selectedSoldersIds.length > 0 && sourceId === 'Solders'
+      ? sourceSolders.filter(solder => selectedSoldersIds.includes(solder.id))
+      : [sourceSolders[sourceIndex]];
+
+    // Remove the items from the source
+    const newSourceSolders = sourceSolders.filter(solder => !movingSolders.includes(solder));
+
+    // Add the items to the destination
+    const newDestinationSolders = [...destinationSolders];
+    newDestinationSolders.splice(destIndex, 0, ...movingSolders.map(solder => ({ ...solder, checked: false })));
+
+    // Reorganize items in both source and destination boxes
+    if (sourceId === 'Solders') {
+      updatedSolders = reorganizeItemsInBox(newSourceSolders);
+    } else {
+      updatedDoneBoxes[sourceIdNumber] = reorganizeItemsInBox(newSourceSolders);
+    }
+
+    if (destId === 'Solders') {
+      updatedSolders = reorganizeItemsInBox(newDestinationSolders);
+    } else {
+      updatedDoneBoxes[destIdNumber] = reorganizeItemsInBox(newDestinationSolders);
+    }
+
+    return {
+      solders: updatedSolders,
+      doneBoxes: updatedDoneBoxes
+    };
+  };
+
+  const reorganizeItemsInBox = (items: SolderType[]): SolderType[] => {
+    // Remove duplicates and reorder items if necessary
+    const uniqueItems = Array.from(new Set(items.map(item => item.id)))
+      .map(id => items.find(item => item.id === id))
+      .filter((item): item is SolderType => item !== undefined);
+
+    return uniqueItems;
+  };
+
+
 
   const handleCheckSolder = (id: number) => {
     setSelectedSoldersIds(prevSelected =>
@@ -126,22 +187,69 @@ const App: React.FC = () => {
     );
   };
 
-  const handleRemoveOrMove = (id: number) => {
-    if (solders.some(task => task.id === id)) {
-      // If the task is in the To Do box, remove it
-      setSolders(prevSoldrs => prevSoldrs.filter(task => task.id !== id));
+  const handleRemoveOrMove = (id: number, boxIndex: number, boxTitle: string) => {
+    console.log('boxIndex' , boxIndex);
+    
+    if (boxTitle === 'Solders') {
+      // If in 'Solders' box (box 0), remove it
+      setSolders(prevSolders => prevSolders.filter(solder => solder.id !== id));
     } else {
-      // If the task is in the Done box, move it back to the To Do box
-      const taskToMove = choseSolders.find(task => task.id === id);
-      if (taskToMove) {
-        setChoseSolders(prevChosenSolders => prevChosenSolders.filter(solder => solder.id !== id));
-        setSolders(prevSoldrs => [...prevSoldrs, { ...taskToMove, checked: false }]);
-      }
+      // If in any 'Done' box, move it back to 'Solders' box (box 0)
+      setDoneBoxes(prevDoneBoxes => {
+        console.log('Previous Done Boxes:', prevDoneBoxes);
+
+        // Remove the solder from the current 'Done' box
+        const updatedBoxes = prevDoneBoxes.map((box, index) =>
+          index === boxIndex ? box.filter(solder => solder.id !== id) : box
+        );
+
+        console.log('Updated Done Boxes:', updatedBoxes);
+        console.log('prevDoneBoxes:', prevDoneBoxes);
+        console.log('id:', id);
+        console.log('boxIndex', boxIndex);
+
+        // Find the solder to move back to 'Solders'
+        const solderToMove = prevDoneBoxes[boxIndex].find(solder => solder.id === id);
+
+        console.log('Solder to Move:', solderToMove);
+
+        if (solderToMove) {
+          // Add the solder back to 'Solders'
+          setSolders(prevSolders => [...prevSolders, { ...solderToMove, checked: false }]);
+        }
+
+        return updatedBoxes;
+      });
     }
   };
 
+
   const onDragStart = (start: DragStart) => {
-    const sourceSolders = start.source.droppableId === 'Solders' ? solders : choseSolders;
+    const sourceId = start.source.droppableId;
+    let sourceSolders: SolderType[] = [];
+
+    if (sourceId === 'Solders') {
+      sourceSolders = solders;
+    } else {
+      const parts = sourceId.split('-');
+      const sourceIndex = parseInt(parts[1], 10);
+
+      if (isNaN(sourceIndex)) {
+        console.error(`Invalid source index: ${sourceIndex}`);
+        return;
+      }
+
+      if (sourceIndex < 1 || sourceIndex > doneBoxes.length) {
+        console.error(`Source index out of bounds: ${sourceIndex}`);
+        return;
+      }
+
+      sourceSolders = doneBoxes[sourceIndex - 1];
+    }
+
+    // Debug: Log extracted values
+    console.log('Source index:', sourceId, sourceSolders);
+
     const movingSolders = selectedSoldersIds.length > 0
       ? sourceSolders.filter(solder => selectedSoldersIds.includes(solder.id))
       : [sourceSolders[start.source.index]];
@@ -149,55 +257,54 @@ const App: React.FC = () => {
     setDraggingCount(movingSolders.length);
   };
 
+
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
 
-    // Dropped outside the list
     if (!destination) {
       setDraggingCount(0);
       return;
-
     }
 
-    const sourceSolders = source.droppableId === 'Solders' ? solders : choseSolders;
-    const destinationTasks = destination.droppableId === 'Solders' ? solders : choseSolders;
-    const setSourceSolders = source.droppableId === 'Solders' ? setSolders : setChoseSolders;
-    const setDestinationSolders = destination.droppableId === 'Solders' ? setSolders : setChoseSolders;
+    const sourceId = source.droppableId;
+    const destId = destination.droppableId;
+    const sourceIndex = source.index;
+    const destIndex = destination.index;
 
-    let movingSolders: SolderType[] = [];
+    // Call updateBoxes to get the updated state
+    const { solders: updatedSolders, doneBoxes: updatedDoneBoxes } = updateBoxes(
+      sourceId,
+      destId,
+      sourceIndex,
+      destIndex,
+      selectedSoldersIds,
+      solders,
+      doneBoxes
+    );
 
-    if (selectedSoldersIds.length > 0 && source.droppableId === 'Solders') {
-      // Dragging multiple selected tasks
-      movingSolders = sourceSolders.filter(solder => selectedSoldersIds.includes(solder.id));
+    // Update the state with the new values
+    if (sourceId === 'Solders') {
+      setSolders(updatedSolders);
     } else {
-      // Dragging a single task
-      movingSolders = [sourceSolders[source.index]];
+      setDoneBoxes(updatedDoneBoxes);
     }
 
-    // If reordering within the same list
-    if (source.droppableId === destination.droppableId) {
-      const reorderedSolders = Array.from(sourceSolders);
-      const [removed] = reorderedSolders.splice(source.index, 1);
-      reorderedSolders.splice(destination.index, 0, removed);
-
-      setSourceSolders(reorderedSolders);
+    if (destId === 'Solders') {
+      setSolders(updatedSolders);
     } else {
-      // Moving between lists
-      const remainingSolders = sourceSolders.filter(solder => !movingSolders.includes(solder));
-      const newDestinationSolders = Array.from(destinationTasks);
-
-      // Insert the moving tasks into the new list
-      newDestinationSolders.splice(destination.index, 0, ...movingSolders.map(solder => ({ ...solder, checked: false })));
-
-      setSourceSolders(remainingSolders);
-      setDestinationSolders(newDestinationSolders);
+      setDoneBoxes(updatedDoneBoxes);
     }
 
-    // Clear selected tasks after dragging
+    // Reset the dragging count and selected solder IDs
     setSelectedSoldersIds([]);
     setDraggingCount(0);
-
   };
+
+
+  const addDoneBox = () => {
+    setDoneBoxes(prevDoneBoxes => [...prevDoneBoxes, []]);
+  };
+
 
   return (
     <DragDropContext onDragEnd={onDragEnd} onDragStart={onDragStart}>
@@ -210,18 +317,22 @@ const App: React.FC = () => {
           showCheckbox={true}
           onRemoveOrMove={handleRemoveOrMove}
           draggingCount={draggingCount}
-
         />
-        <SoldersBox
-          boxTitle="ChosenSolders"
-          solders={choseSolders}
-          onCheck={() => {}}
-          selectedSoldersIds={[]}
-          showCheckbox={false}
-          onRemoveOrMove={handleRemoveOrMove}
-          draggingCount={draggingCount}
-
-        />
+        {doneBoxes.map((doneBox, index) => (
+          <SoldersBox
+            key={`Done-${index}`}
+            boxTitle={`Done-${index}`}
+            solders={doneBox}
+            onCheck={() => { }}
+            selectedSoldersIds={[]}
+            showCheckbox={false}
+            onRemoveOrMove={handleRemoveOrMove}
+            draggingCount={draggingCount}
+          />
+        ))}
+        <button onClick={addDoneBox} className="add-done-box-button">
+          + Add Done Box
+        </button>
       </div>
     </DragDropContext>
   );
