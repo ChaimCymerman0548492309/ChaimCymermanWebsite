@@ -38,7 +38,7 @@ const Solder: React.FC<{
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`task-item ${snapshot.isDragging ? 'dragging' : ''} ${isSelected ? 'selected' : ''}`}
+          className={`task-item ${snapshot.isDragging ? 'dragging' : ''} ${isSelected ? 'selected' : ''} ${snapshot.isDragging && draggingCount > 1 ? 'dragging-multiple' : ''}`}
           style={{
             userSelect: 'none',
             ...provided.draggableProps.style,
@@ -58,7 +58,6 @@ const Solder: React.FC<{
           <div className="remove-icon" onClick={() => onRemoveOrMove(solder.id, index, title)}>
             &#10005;
           </div>
-
           {snapshot.isDragging && draggingCount > 1 && (
             <div className="dragging-count-circle">
               {draggingCount}
@@ -69,6 +68,7 @@ const Solder: React.FC<{
     </Draggable>
   );
 };
+
 
 const SoldersBox: React.FC<{
   boxTitle: string;
@@ -81,7 +81,18 @@ const SoldersBox: React.FC<{
   onRemoveBox?: () => void;
   teamName: string;
   onTeamNameChange: (name: string) => void;
-}> = ({ boxTitle: title, solders, onCheck, selectedSoldersIds, showCheckbox, onRemoveOrMove, draggingCount, onRemoveBox, teamName, onTeamNameChange }) => {
+}> = ({
+  boxTitle: title,
+  solders,
+  onCheck,
+  selectedSoldersIds,
+  showCheckbox,
+  onRemoveOrMove,
+  draggingCount,
+  onRemoveBox,
+  teamName,
+  onTeamNameChange
+}) => {
   return (
     <Droppable droppableId={title}>
       {(provided, snapshot) => (
@@ -92,14 +103,18 @@ const SoldersBox: React.FC<{
           style={{ backgroundColor: snapshot.isDraggingOver ? 'lightblue' : 'lightgrey' }}
         >
           <div className="box-header">
-            <input
-              type="text"
-              value={teamName}
-              onChange={(e) => onTeamNameChange(e.target.value)}
-              placeholder="Team Name"
-              className="team-name-input"
-            />
-            <h2>{title}</h2>
+            {title !== 'Solders' && (
+              <input
+                type="text"
+                value={teamName}
+                onChange={(e) => onTeamNameChange(e.target.value)}
+                placeholder="Team Name"
+                className="team-name-input"
+              />
+            )}
+            {/* Display the team name as the box title in an h3 */}
+            <h3 className="team-name-title">{teamName }</h3>
+            <h3 className="team-name-title">{ title}</h3>
             {onRemoveBox && title !== 'Solders' && (
               <button className="remove-box-button" onClick={onRemoveBox}>
                 &#10005;
@@ -125,6 +140,7 @@ const SoldersBox: React.FC<{
     </Droppable>
   );
 };
+
 
 const App: React.FC = () => {
   const [solders, setSolders] = useState<SolderType[]>(soldersData);
@@ -199,30 +215,33 @@ const App: React.FC = () => {
     );
   };
 
-  const handleRemoveOrMove = (id: number, boxIndex: number, boxTitle: string) => {
-    if (boxTitle === 'Solders') {
-      // If in 'Solders' box (box 0), remove it
+  const handleRemoveOrMove = (id: number, boxIndex: number, title: string) => {
+    if (title === 'Solders') {
+      // Remove from 'Solders' box (box 0)
       setSolders(prevSolders => prevSolders.filter(solder => solder.id !== id));
     } else {
       // If in any 'Done' box, move it back to 'Solders' box (box 0)
+      const boxIndex = parseInt(title.split('-')[1], 10);
+  
       setDoneBoxes(prevDoneBoxes => {
         // Remove the solder from the current 'Done' box
         const updatedBoxes = prevDoneBoxes.map((box, index) =>
           index === boxIndex ? box.filter(solder => solder.id !== id) : box
         );
-
+  
         // Find the solder to move
         const solderToMove = prevDoneBoxes[boxIndex].find(solder => solder.id === id);
-
+  
         if (solderToMove) {
           // Add the solder back to 'Solders'
           setSolders(prevSolders => [...prevSolders, { ...solderToMove, checked: false }]);
         }
-
+  
         return updatedBoxes;
       });
     }
   };
+  
 
   const handleRemoveBox = (index: number) => {
     setDoneBoxes(prevDoneBoxes => {
@@ -239,7 +258,7 @@ const App: React.FC = () => {
       // Update team names
       const updatedNames = teamNames
         .filter((_, i) => i !== index)
-        // .map((name, i) => `Done-${i}`);
+      // .map((name, i) => `Done-${i}`);
 
       setTeamNames(updatedNames);
 
@@ -344,7 +363,7 @@ const App: React.FC = () => {
           onRemoveOrMove={handleRemoveOrMove}
           draggingCount={draggingCount}
           teamName="Solders"
-          onTeamNameChange={() => { }} // No need to handle team name change for the "Solders" box
+          onTeamNameChange={() => {}} // No need to handle team name change for the "Solders" box
         />
         {doneBoxes.map((doneBox, index) => (
           <SoldersBox

@@ -1,165 +1,179 @@
 /* Base styling for task items */
 .task-item {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    margin-bottom: 10px;
-    background-color: #ffffff;
-    border-radius: 6px;
-    border: 1px solid #e0e0e0;
-    cursor: move;
-    position: relative;
-    transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
-  }
-  
-  /* When dragging an item */
-  .task-item.dragging {
-    background-color: #d1e0e0;
-    opacity: 0.9;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-  }
-  
-  /* When a task item is selected */
-  .task-item.selected {
-    background-color: #cce5ff;
-    color: #004085;
-    border: 1px solid #004085;
-  }
-  
-  /* Focus styling for task items */
-  .task-item:focus {
-    outline: none;
-    border-color: #80bdff;
-  }
-  
-  /* Checkbox styling */
-  .task-checkbox {
-    margin-right: 12px;
-    width: 26px;
-    height: 26px;
-    cursor: pointer;
-    appearance: none;
-    border: 2px solid #007bff;
-    border-radius: 6px;
-    background-color: transparent;
-    transition: background-color 0.3s, border-color 0.3s;
-  }
-  
-  /* Checkbox when checked */
-  .task-checkbox:checked {
-    background-color: #007bff;
-    border-color: #007bff;
-  }
-  
-  /* 'V' icon in the checkbox when checked */
-  .task-checkbox:checked::after {
-    content: '✔';
-    color: white;
-    font-size: 18px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-  
-  /* Remove icon styling */
-  .remove-icon {
-    width: 28px;
-    height: 28px;
-    color: #dc3545;
-    cursor: pointer;
-    font-size: 18px;
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background-color: #f8d7da;
-    transition: background-color 0.3s, color 0.3s, border 0.3s;
-    border: 2px solid transparent;
-  }
-  
-  /* Remove icon hover effect */
-  .remove-icon:hover {
-    background-color: #f5c6cb;
-    color: #721c24;
-  }
-  
-  /* Dragging count circle */
-  .dragging-count-circle {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    background-color: rgb(76, 172, 204);
-    color: white;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-  }
-  
-  /* App container styling */
-  .App {
-    display: flex;
-    justify-content: space-around;
-    padding: 20px;
-    align-items: flex-start;
-    background-color: #f0f4f8;
-    min-height: 100vh;
-  }
-  
-  /* Task box styling */
-  .task-box {
-    border: 1px solid #ccc;
-    padding: 10px;
-    width: 300px;
-    min-height: 400px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: border-color 0.3s, background-color 0.3s;
-  }
-  
-  /* Highlight when dragging over */
-  .task-box:hover, .task-box.over {
-    border-color: #007bff;
-    background-color: #e9f7ff;
-  }
-  
-  /* Styling for the box when a task is dragged over */
-  .task-box.over {
-    border: 2px dashed #007bff;
-    background-color: #e9f7ff;
-  }
-  
-  /* Button styling */
-  button {
-    height: 40px;
-    margin-top: 20px;
-    padding: 0 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.3s;
-  }
-  
-  /* Button hover effect */
-  button:hover {
-    background-color: #0056b3;
-    transform: scale(1.05);
-  }
-  
-  /* Button active state */
-  button:active {
-    background-color: #00408d;
-    transform: scale(0.95);
-  }
-  
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 10px;
+  background-color: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  cursor: grab;
+  position: relative;
+  transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
+}
+
+/* When dragging an item */
+.task-item.dragging {
+  background-color: #d1e0e0;
+  opacity: 0.9;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  cursor: grabbing;
+}
+
+/* When dragging multiple items */
+.task-item.dragging-multiple {
+  background-color: #d1e0e0;
+  opacity: 0.9;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  cursor: grabbing;
+}
+
+/* When a task item is selected */
+.task-item.selected {
+  background-color: #cce5ff;
+  color: #004085;
+  border: 1px solid #004085;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Focus styling for task items */
+.task-item:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
+}
+
+/* Checkbox styling */
+.task-checkbox {
+  margin-right: 12px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  appearance: none;
+  border: 2px solid #007bff;
+  border-radius: 6px;
+  background-color: transparent;
+  position: relative;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* Checkbox when checked */
+.task-checkbox:checked {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+/* 'V' icon in the checkbox when checked */
+.task-checkbox:checked::after {
+  content: '✔';
+  color: white;
+  font-size: 18px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Remove icon styling */
+.remove-icon {
+  width: 28px;
+  height: 28px;
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 18px;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #f8d7da;
+  transition: background-color 0.3s, color 0.3s, border 0.3s;
+  border: 2px solid transparent;
+}
+
+/* Remove icon hover effect */
+.remove-icon:hover {
+  background-color: #f5c6cb;
+  color: #721c24;
+}
+
+/* Dragging count circle */
+.dragging-count-circle {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background-color: rgb(76, 172, 204);
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+/* App container styling */
+.App {
+  display: flex;
+  justify-content: space-around;
+  padding: 20px;
+  align-items: flex-start;
+  background-color: #f0f4f8;
+  min-height: 100vh;
+}
+
+/* Task box styling */
+.task-box {
+  border: 1px solid #ccc;
+  padding: 10px;
+  width: 300px;
+  min-height: 400px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s, background-color 0.3s;
+  position: relative;
+}
+
+/* Highlight when dragging over */
+.task-box:hover, .task-box.over {
+  border-color: #007bff;
+  background-color: #e9f7ff;
+}
+
+/* Styling for the box when a task is dragged over */
+.task-box.over {
+  border: 2px dashed #007bff;
+  background-color: #e9f7ff;
+}
+
+/* Button styling */
+button {
+  height: 40px;
+  margin-top: 20px;
+  padding: 0 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+/* Button hover effect */
+button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+/* Button active state */
+button:active {
+  background-color: #00408d;
+  transform: scale(0.95);
+}
