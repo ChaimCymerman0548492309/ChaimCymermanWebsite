@@ -45,15 +45,40 @@ export default function DragAndDrop() {
     Appointment | "undroppable"
   >();
 
-  const onDroppedFromOutside = useCallback(
+  // const onDroppedFromOutside = useCallback(
+  //   ({
+  //     start,
+  //     end,
+  //     allDay,  // Changed from resource to allDay to match the expected structure
+  //   }: {
+  //     start: stringOrDate;
+  //     end: stringOrDate;
+  //     allDay: boolean;
+  //   }) => {
+  //     if (draggedEvent === "undroppable") return;
+  //     setEvents((prevEvents) => [
+  //       ...prevEvents,
+  //       {
+  //         start,
+  //         end,
+  //         isAllDay: allDay, // Adjusting the property to fit the event structure
+  //         data: { appointment: draggedEvent },
+  //         isDraggable: true,
+  //         isResizable: true,
+  //       },
+  //     ]);
+  //   },
+  //   [draggedEvent]
+  // );
+   const onDroppedFromOutside = useCallback(
     ({
       start,
       end,
-      allDay,  // Changed from resource to allDay to match the expected structure
+      resource,
     }: {
       start: stringOrDate;
       end: stringOrDate;
-      allDay: boolean;
+      resource: number;
     }) => {
       if (draggedEvent === "undroppable") return;
       setEvents((prevEvents) => [
@@ -61,7 +86,7 @@ export default function DragAndDrop() {
         {
           start,
           end,
-          isAllDay: allDay, // Adjusting the property to fit the event structure
+          resourceId: resource,
           data: { appointment: draggedEvent },
           isDraggable: true,
           isResizable: true,
@@ -70,7 +95,6 @@ export default function DragAndDrop() {
     },
     [draggedEvent]
   );
-  
 
   const dummyAppointment = {
     id: 3,
