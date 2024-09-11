@@ -22,23 +22,24 @@ export default function DragAndDrop() {
       event,
       start,
       end,
-      resourceId,
+      isAllDay,
     }: {
       event: EventItem;
       start: stringOrDate;
       end: stringOrDate;
-      resourceId: number;
+      isAllDay: boolean;
     }) => {
       setEvents((prevEvents) =>
         prevEvents.map((prevEvent) =>
           prevEvent?.data?.appointment?.id === event?.data?.appointment?.id
-            ? { ...event, start, end, resourceId }
+            ? { ...event, start, end, isAllDay } // Adjust the updated fields as necessary
             : prevEvent
         )
       );
     },
     []
   );
+  
 
   const [draggedEvent, setDraggedEvent] = useState<
     Appointment | "undroppable"
@@ -48,11 +49,11 @@ export default function DragAndDrop() {
     ({
       start,
       end,
-      resource,
+      allDay,  // Changed from resource to allDay to match the expected structure
     }: {
       start: stringOrDate;
       end: stringOrDate;
-      resource: number;
+      allDay: boolean;
     }) => {
       if (draggedEvent === "undroppable") return;
       setEvents((prevEvents) => [
@@ -60,7 +61,7 @@ export default function DragAndDrop() {
         {
           start,
           end,
-          resourceId: resource,
+          isAllDay: allDay, // Adjusting the property to fit the event structure
           data: { appointment: draggedEvent },
           isDraggable: true,
           isResizable: true,
@@ -69,6 +70,7 @@ export default function DragAndDrop() {
     },
     [draggedEvent]
   );
+  
 
   const dummyAppointment = {
     id: 3,
