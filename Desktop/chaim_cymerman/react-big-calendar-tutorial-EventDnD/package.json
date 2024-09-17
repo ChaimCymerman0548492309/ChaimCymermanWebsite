@@ -12,6 +12,7 @@
     "@chakra-ui/react": "^2.7.1",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
+    "@mui/material": "^6.1.0",
     "@types/react-big-calendar": "^1.6.1",
     "big-calendar": "file:",
     "framer-motion": "^10.12.18",

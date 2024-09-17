@@ -11,6 +11,7 @@ import "./index.css";
 import { Box, Flex } from "@chakra-ui/react";
 import { OutsideEvent } from "../OutsideEvent";
 import { AppointmentEvent } from "../AppointmentEvent";
+import RightClickMenu from "./RightClickMenu";
 
 const DnDCalendar = withDragAndDrop<EventItem>(BigCalendar);
 
