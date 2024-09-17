@@ -9,25 +9,30 @@ function App() {
   const [mouseX, setMouseX] = useState<number>(0);
   const [mouseY, setMouseY] = useState<number>(0);
 
-  // Function to handle right-click event
+  const menuOptions = ['Option 1', 'Option 2', 'Option 3'];
+
   const handleRightClick = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent default right-click behavior
-    setMouseX(e.clientX); // Set the x-coordinate of the mouse
-    setMouseY(e.clientY); // Set the y-coordinate of the mouse
-    setIsRightClickVisible(true); // Open the menu
+    
+    e.preventDefault();
+    setMouseX(e.clientX);
+    setMouseY(e.clientY);
+    setIsRightClickVisible(true);
   };
 
-  // Function to close the menu
   const handleClose = () => {
     setIsRightClickVisible(false);
   };
 
-  // This function will be triggered whenever the visibility changes
   const handleVisibilityChange = (isVisible: boolean) => {
+    
     console.log(`Right-click menu visibility changed to: ${isVisible}`);
     if (!isVisible) {
       console.log('Right-click menu closed');
     }
+  };
+
+  const handleOptionSelect = (option: string) => {
+    console.log(`Selected option: ${option}`);
   };
 
   return (
@@ -36,14 +41,16 @@ function App() {
         <div
           style={{ height: '95vh' }}
           onContextMenu={handleRightClick}
-        >
-          <DragAndDrop />
+        >23213232132
+          {/* <DragAndDrop /> */}
           <RightClickMenu
             isVisible={isRightClickVisible}
             mouseX={mouseX}
             mouseY={mouseY}
             onVisibilityChange={handleVisibilityChange}
             handleClose={handleClose}
+            options={menuOptions}
+            onOptionSelect={handleOptionSelect}
           />
         </div>
       </ErrorBoundary>

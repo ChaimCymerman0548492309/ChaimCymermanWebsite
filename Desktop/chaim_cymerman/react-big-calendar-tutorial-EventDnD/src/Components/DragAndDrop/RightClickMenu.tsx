@@ -2,36 +2,48 @@ import React, { useEffect } from 'react';
 import { Menu, MenuItem } from '@mui/material';
 
 interface RightClickMenuProps {
-  isVisible: boolean;
-  mouseX: number;
-  mouseY: number;
-  onVisibilityChange: (isVisible: boolean) => void;
-  handleClose: () => void;
+    isVisible: boolean;
+    mouseX: number;
+    mouseY: number;
+    onVisibilityChange: (isVisible: boolean) => void;
+    handleClose: () => void;
+    options: string[];
+    onOptionSelect: (option: string) => void;
 }
 
 const RightClickMenu: React.FC<RightClickMenuProps> = ({
-  isVisible,
-  mouseX,
-  mouseY,
-  onVisibilityChange,
-  handleClose
+    isVisible,
+    mouseX,
+    mouseY,
+    onVisibilityChange,
+    handleClose,
+    options,
+    onOptionSelect
 }) => {
-  useEffect(() => {
-    onVisibilityChange(isVisible);
-  }, [isVisible, onVisibilityChange]);
+    useEffect(() => {
+        onVisibilityChange(isVisible);
+    }, [isVisible, onVisibilityChange]);
 
-  return (
-    <Menu
-      open={isVisible}
-      onClose={handleClose}
-      anchorReference="anchorPosition"
-      anchorPosition={{ top: mouseY, left: mouseX }}
-    >
-      <MenuItem onClick={handleClose}>Option 1</MenuItem>
-      <MenuItem onClick={handleClose}>Option 2</MenuItem>
-      <MenuItem onClick={handleClose}>Option 3</MenuItem>
-    </Menu>
-  );
+    const handleMenuItemClick = (option: string) => {
+
+        onOptionSelect(option);
+        handleClose();
+    };
+
+    return (
+        <Menu
+            open={isVisible}
+            onClose={handleClose}
+            anchorReference="anchorPosition"
+            anchorPosition={{ top: mouseY, left: mouseX }}
+        >
+            {options.map((option, index) => (
+                <MenuItem key={index} onClick={() => handleMenuItemClick(option)}>
+                    {option}
+                </MenuItem>
+            ))}
+        </Menu>
+    );
 };
 
 export default RightClickMenu;
